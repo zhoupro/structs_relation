@@ -12,6 +12,7 @@ node_type = "struct"
 
 nodeList = []
 linkList = []
+nodeName = ""
 
 
 dotText ='''
@@ -29,9 +30,16 @@ for tmpline in fileinput.input():
         if "union" in tmpline:
             node_type = "union"
         depth = depth + 1
+
+        m = re.search(r'\s*struct\s*([0-9a-zA-Z_]*)\s*{\s*', tmpline)
+        nodeName = m.group(1)
+        print(nodeName)
+
     elif "}" in tmpline:
         m = re.search(r'}\s*([0-9a-zA-Z_\-\[\]\*]*)\s*\;\s*', tmpline)
         struct_name = m.group(1)
+        if struct_name == "":
+            struct_name = nodeName
         top_node = stack[-1]
         curList = []
         curObj = {}

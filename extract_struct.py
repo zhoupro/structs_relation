@@ -4,7 +4,7 @@ output_str = ""
 depth = 0
 collect = 0
 for tmpline in fileinput.input():
-    if "typedef struct" in tmpline and "{" in tmpline:
+    if "struct" in tmpline and "{" in tmpline:
         collect = 1
         output_str = tmpline
         depth = depth + 1
