@@ -1,0 +1,545 @@
+typedef struct listNode {
+    struct listNode *prev;
+    struct listNode *next;
+    void *value;
+} listNode;
+typedef struct listIter {
+    listNode *next;
+    int direction;
+} listIter;
+typedef struct list {
+    listNode *head;
+    listNode *tail;
+    void *(*dup)(void *ptr);
+    void (*free)(void *ptr);
+    int (*match)(void *ptr, void *key);
+    unsigned long len;
+} list;
+typedef struct aeFileEvent {
+    int mask; 
+    aeFileProc *rfileProc;
+    aeFileProc *wfileProc;
+    void *clientData;
+} aeFileEvent;
+typedef struct aeTimeEvent {
+    long long id; 
+    long when_sec; 
+    long when_ms; 
+    aeTimeProc *timeProc;
+    aeEventFinalizerProc *finalizerProc;
+    void *clientData;
+    struct aeTimeEvent *next;
+} aeTimeEvent;
+typedef struct aeFiredEvent {
+    int fd;
+    int mask;
+} aeFiredEvent;
+typedef struct aeEventLoop {
+    int maxfd;   
+    int setsize; 
+    long long timeEventNextId;
+    time_t lastTime;     
+    aeFileEvent *events; 
+    aeFiredEvent *fired; 
+    aeTimeEvent *timeEventHead;
+    int stop;
+    void *apidata; 
+    aeBeforeSleepProc *beforesleep;
+} aeEventLoop;
+typedef struct clusterLink {
+    mstime_t ctime;             
+    int fd;                     
+    sds sndbuf;                 
+    sds rcvbuf;                 
+    struct clusterNode *node;   
+} clusterLink;
+typedef struct clusterNodeFailReport {
+    struct clusterNode *node;  
+    mstime_t time;             
+} clusterNodeFailReport;
+typedef struct clusterNode {
+    mstime_t ctime; 
+    char name[REDIS_CLUSTER_NAMELEN]; 
+    int flags;      
+    uint64_t configEpoch; 
+    unsigned char slots[REDIS_CLUSTER_SLOTS/8]; 
+    int numslots;   
+    int numslaves;  
+    struct clusterNode **slaves; 
+    struct clusterNode *slaveof; 
+    mstime_t ping_sent;      
+    mstime_t pong_received;  
+    mstime_t fail_time;      
+    mstime_t voted_time;     
+    mstime_t repl_offset_time;  
+    long long repl_offset;      
+    char ip[REDIS_IP_STR_LEN];  
+    int port;                   
+    clusterLink *link;          
+    list *fail_reports;         
+} clusterNode;
+typedef struct clusterState {
+    clusterNode *myself;  
+    uint64_t currentEpoch;
+    int state;            
+    int size;             
+    dict *nodes;          
+    dict *nodes_black_list; 
+    clusterNode *migrating_slots_to[REDIS_CLUSTER_SLOTS];
+    clusterNode *importing_slots_from[REDIS_CLUSTER_SLOTS];
+    clusterNode *slots[REDIS_CLUSTER_SLOTS];
+    zskiplist *slots_to_keys;
+    mstime_t failover_auth_time; 
+    int failover_auth_count;    
+    int failover_auth_sent;     
+    int failover_auth_rank;     
+    uint64_t failover_auth_epoch; 
+    int cant_failover_reason;   
+    mstime_t mf_end;            
+    clusterNode *mf_slave;      
+    long long mf_master_offset; 
+    int mf_can_start;           
+    uint64_t lastVoteEpoch;     
+    int todo_before_sleep; 
+    long long stats_bus_messages_sent;  
+    long long stats_bus_messages_received; 
+} clusterState;
+typedef struct {
+    char nodename[REDIS_CLUSTER_NAMELEN];
+    uint32_t ping_sent;
+    uint32_t pong_received;
+    char ip[REDIS_IP_STR_LEN];  
+    uint16_t port;              
+    uint16_t flags;             
+    uint16_t notused1;          
+    uint32_t notused2;
+} clusterMsgDataGossip;
+typedef struct {
+    char nodename[REDIS_CLUSTER_NAMELEN];
+} clusterMsgDataFail;
+typedef struct {
+    uint32_t channel_len;
+    uint32_t message_len;
+    unsigned char bulk_data[8];
+} clusterMsgDataPublish;
+typedef struct {
+    uint64_t configEpoch; 
+    char nodename[REDIS_CLUSTER_NAMELEN]; 
+    unsigned char slots[REDIS_CLUSTER_SLOTS/8]; 
+} clusterMsgDataUpdate;
+typedef struct {
+    char sig[4];        
+    uint32_t totlen;    
+    uint16_t ver;       
+    uint16_t notused0;  
+    uint16_t type;      
+    uint16_t count;     
+    uint64_t currentEpoch;  
+    uint64_t configEpoch;   
+    uint64_t offset;    
+    char sender[REDIS_CLUSTER_NAMELEN]; 
+    unsigned char myslots[REDIS_CLUSTER_SLOTS/8];
+    char slaveof[REDIS_CLUSTER_NAMELEN];
+    char notused1[32];  
+    uint16_t port;      
+    uint16_t flags;     
+    unsigned char state; 
+    unsigned char mflags[3]; 
+    union clusterMsgData data;
+} clusterMsg;
+typedef struct dictEntry {
+    void *key;
+    union {
+        void *val;
+        uint64_t u64;
+        int64_t s64;
+        double d;
+    } v;
+    struct dictEntry *next;
+} dictEntry;
+typedef struct dictType {
+    unsigned int (*hashFunction)(const void *key);
+    void *(*keyDup)(void *privdata, const void *key);
+    void *(*valDup)(void *privdata, const void *obj);
+    int (*keyCompare)(void *privdata, const void *key1, const void *key2);
+    void (*keyDestructor)(void *privdata, void *key);
+    void (*valDestructor)(void *privdata, void *obj);
+} dictType;
+typedef struct dictht {
+    dictEntry **table;
+    unsigned long size;
+    unsigned long sizemask;
+    unsigned long used;
+} dictht;
+typedef struct dict {
+    dictType *type;
+    void *privdata;
+    dictht ht[2];
+    long rehashidx; 
+    int iterators; 
+} dict;
+typedef struct dictIterator {
+    dict *d;
+    long index;
+    int table, safe;
+    dictEntry *entry, *nextEntry;
+    long long fingerprint;
+} dictIterator;
+typedef struct intset {
+    uint32_t encoding;
+    uint32_t length;
+    int8_t contents[];
+} intset;
+typedef struct redisObject {
+    unsigned type:4;
+    unsigned encoding:4;
+    unsigned lru:REDIS_LRU_BITS; 
+    int refcount;
+    void *ptr;
+} robj;
+typedef struct redisDb {
+    dict *dict;                 
+    dict *expires;              
+    dict *blocking_keys;        
+    dict *ready_keys;           
+    dict *watched_keys;         
+    struct evictionPoolEntry *eviction_pool;    
+    int id;                     
+    long long avg_ttl;          
+} redisDb;
+typedef struct multiCmd {
+    robj **argv;
+    int argc;
+    struct redisCommand *cmd;
+} multiCmd;
+typedef struct multiState {
+    multiCmd *commands;     
+    int count;              
+    int minreplicas;        
+    time_t minreplicas_timeout; 
+} multiState;
+typedef struct blockingState {
+    mstime_t timeout;       
+    dict *keys;             
+    robj *target;           
+    int numreplicas;        
+    long long reploffset;   
+} blockingState;
+typedef struct readyList {
+    redisDb *db;
+    robj *key;
+} readyList;
+typedef struct redisClient {
+    uint64_t id;            
+    int fd;
+    redisDb *db;
+    int dictid;
+    robj *name;             
+    sds querybuf;
+    size_t querybuf_peak;   
+    int argc;
+    robj **argv;
+    struct redisCommand *cmd, *lastcmd;
+    int reqtype;
+    int multibulklen;       
+    long bulklen;           
+    list *reply;
+    unsigned long reply_bytes; 
+    int sentlen;            
+    time_t ctime;           
+    time_t lastinteraction; 
+    time_t obuf_soft_limit_reached_time;
+    int flags;              
+    int authenticated;      
+    int replstate;          
+    int repl_put_online_on_ack; 
+    int repldbfd;           
+    off_t repldboff;        
+    off_t repldbsize;       
+    sds replpreamble;       
+    long long reploff;      
+    long long repl_ack_off; 
+    long long repl_ack_time;
+    char replrunid[REDIS_RUN_ID_SIZE+1]; 
+    int slave_listening_port; 
+    multiState mstate;      
+    int btype;              
+    blockingState bpop;     
+    long long woff;         
+    list *watched_keys;     
+    dict *pubsub_channels;  
+    list *pubsub_patterns;  
+    sds peerid;             
+    int bufpos;
+    char buf[REDIS_REPLY_CHUNK_BYTES];
+} redisClient;
+typedef struct zskiplistNode {
+    robj *obj;
+    double score;
+    struct zskiplistNode *backward;
+    struct zskiplistLevel {
+        struct zskiplistNode *forward;
+        unsigned int span;
+    } level[];
+} zskiplistNode;
+typedef struct zskiplist {
+    struct zskiplistNode *header, *tail;
+    unsigned long length;
+    int level;
+} zskiplist;
+typedef struct zset {
+    dict *dict;
+    zskiplist *zsl;
+} zset;
+typedef struct clientBufferLimitsConfig {
+    unsigned long long hard_limit_bytes;
+    unsigned long long soft_limit_bytes;
+    time_t soft_limit_seconds;
+} clientBufferLimitsConfig;
+typedef struct redisOp {
+    robj **argv;
+    int argc, dbid, target;
+    struct redisCommand *cmd;
+} redisOp;
+typedef struct redisOpArray {
+    redisOp *ops;
+    int numops;
+} redisOpArray;
+typedef struct pubsubPattern {
+    redisClient *client;
+    robj *pattern;
+} pubsubPattern;
+typedef struct _redisSortObject {
+    robj *obj;
+    union {
+        double score;
+        robj *cmpobj;
+    } u;
+} redisSortObject;
+typedef struct _redisSortOperation {
+    int type;
+    robj *pattern;
+} redisSortOperation;
+typedef struct {
+    robj *subject;
+    unsigned char encoding;
+    unsigned char direction; 
+    unsigned char *zi;
+    listNode *ln;
+} listTypeIterator;
+typedef struct {
+    listTypeIterator *li;
+    unsigned char *zi;  
+    listNode *ln;       
+} listTypeEntry;
+typedef struct {
+    robj *subject;
+    int encoding;
+    int ii; 
+    dictIterator *di;
+} setTypeIterator;
+typedef struct {
+    robj *subject;
+    int encoding;
+    unsigned char *fptr, *vptr;
+    dictIterator *di;
+    dictEntry *de;
+} hashTypeIterator;
+typedef struct {
+    double min, max;
+    int minex, maxex; 
+} zrangespec;
+typedef struct {
+    robj *min, *max;  
+    int minex, maxex; 
+} zlexrangespec;
+typedef struct {
+    u_int32_t state[5];
+    u_int32_t count[2];
+    unsigned char buffer[64];
+} SHA1_CTX;
+typedef struct slowlogEntry {
+    robj **argv;
+    int argc;
+    long long id;       
+    long long duration; 
+    time_t time;        
+} slowlogEntry;
+typedef struct aeApiState {
+    int epfd;
+    struct epoll_event *events;
+} aeApiState;
+typedef struct aeApiState {
+    int     portfd;                             
+    int     npending;                           
+    int     pending_fds[MAX_EVENT_BATCHSZ];     
+    int     pending_masks[MAX_EVENT_BATCHSZ];   
+} aeApiState;
+typedef struct aeApiState {
+    int kqfd;
+    struct kevent *events;
+} aeApiState;
+typedef struct aeApiState {
+    fd_set rfds, wfds;
+    fd_set _rfds, _wfds;
+} aeApiState;
+typedef struct aofrwblock {
+    unsigned long used, free;
+    char buf[AOF_RW_BUF_BLOCK_SIZE];
+} aofrwblock;
+typedef struct migrateCachedSocket {
+    int fd;
+    long last_dbid;
+    time_t last_use_time;
+} migrateCachedSocket;
+typedef struct watchedKey {
+    robj *key;
+    redisDb *db;
+} watchedKey;
+typedef struct _client {
+    redisContext *context;
+    sds obuf;
+    char **randptr;         
+    size_t randlen;         
+    size_t randfree;        
+    unsigned int written;   
+    long long start;        
+    long long latency;      
+    int pending;            
+    int prefix_pending;     
+    int prefixlen;          
+} *client;
+typedef struct {
+    void *data;
+    size_t size;
+    size_t offset;
+} pos;
+typedef struct {
+    char error[16][1024];
+    size_t offset[16];
+    size_t level;
+} errors_t;
+typedef struct {
+    char* key;
+    int type;
+    char success;
+} entry;
+typedef struct {
+    int type;
+    int argc;
+    sds *argv;
+    sds full;
+    struct commandHelp *org;
+} helpEntry;
+typedef struct sentinelAddr {
+    char *ip;
+    int port;
+} sentinelAddr;
+typedef struct sentinelRedisInstance {
+    int flags;      
+    char *name;     
+    char *runid;    
+    uint64_t config_epoch;  
+    sentinelAddr *addr; 
+    redisAsyncContext *cc; 
+    redisAsyncContext *pc; 
+    int pending_commands;   
+    mstime_t cc_conn_time; 
+    mstime_t pc_conn_time; 
+    mstime_t pc_last_activity; 
+    mstime_t last_avail_time; 
+    mstime_t last_ping_time;  
+    mstime_t last_pong_time;  
+    mstime_t last_pub_time;   
+    mstime_t last_hello_time; 
+    mstime_t last_master_down_reply_time; 
+    mstime_t s_down_since_time; 
+    mstime_t o_down_since_time; 
+    mstime_t down_after_period; 
+    mstime_t info_refresh;  
+    int role_reported;
+    mstime_t role_reported_time;
+    mstime_t slave_conf_change_time; 
+    dict *sentinels;    
+    dict *slaves;       
+    unsigned int quorum;
+    int parallel_syncs; 
+    char *auth_pass;    
+    mstime_t master_link_down_time; 
+    int slave_priority; 
+    mstime_t slave_reconf_sent_time; 
+    struct sentinelRedisInstance *master; 
+    char *slave_master_host;    
+    int slave_master_port;      
+    int slave_master_link_status; 
+    unsigned long long slave_repl_offset; 
+    char *leader;       
+    uint64_t leader_epoch; 
+    uint64_t failover_epoch; 
+    int failover_state; 
+    mstime_t failover_state_change_time;
+    mstime_t failover_start_time;   
+    mstime_t failover_timeout;      
+    mstime_t failover_delay_logged; 
+    struct sentinelRedisInstance *promoted_slave; 
+    char *notification_script;
+    char *client_reconfig_script;
+} sentinelRedisInstance;
+typedef struct sentinelScriptJob {
+    int flags;              
+    int retry_num;          
+    char **argv;            
+    mstime_t start_time;    
+    pid_t pid;              
+} sentinelScriptJob;
+typedef struct redisAeEvents {
+    redisAsyncContext *context;
+    aeEventLoop *loop;
+    int fd;
+    int reading, writing;
+} redisAeEvents;
+typedef struct {
+    robj *subject;
+    int type; 
+    int encoding;
+    double weight;
+    union {
+        union _iterset {
+            struct {
+                intset *is;
+                int ii;
+            } is;
+            struct {
+                dict *dict;
+                dictIterator *di;
+                dictEntry *de;
+            } ht;
+        } set;
+        union _iterzset {
+            struct {
+                unsigned char *zl;
+                unsigned char *eptr, *sptr;
+            } zl;
+            struct {
+                zset *zs;
+                zskiplistNode *node;
+            } sl;
+        } zset;
+    } iter;
+} zsetopsrc;
+typedef struct {
+    int flags;
+    unsigned char _buf[32]; 
+    robj *ele;
+    unsigned char *estr;
+    unsigned int elen;
+    long long ell;
+    double score;
+} zsetopval;
+typedef struct zlentry {
+    unsigned int prevrawlensize, prevrawlen;
+    unsigned int lensize, len;
+    unsigned int headersize;
+    unsigned char encoding;
+    unsigned char *p;
+} zlentry;
