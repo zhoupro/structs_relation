@@ -22,6 +22,11 @@ digraph {
     rankdir=LR;
 '''
 
+def convert_key(key):
+    key = re.sub(r'\*',"_",key)
+    key = re.sub(r'\[',"_",key)
+    key = re.sub(r'\]',"_",key)
+    return key
 
 
 for tmpline in fileinput.input():
@@ -31,13 +36,13 @@ for tmpline in fileinput.input():
         if "union" in tmpline:
             node_type = "union"
             continue
-
         m = re.search(r'\s*struct\s*([0-9a-zA-Z_]*)\s*{\s*', tmpline)
         assert m is not None
         nodeName = m.group(1)
 
     elif "}" in tmpline:
         m = re.search(r'}\s*([0-9a-zA-Z_\-\[\]\*]*)\s*\;\s*', tmpline)
+        assert m is not None
         struct_name = m.group(1)
         if struct_name == "":
             struct_name = nodeName
@@ -53,6 +58,7 @@ for tmpline in fileinput.input():
             top_node = stack[-1]
         curObj["val"] = curList
         curObj["key"] = struct_name
+        curObj["convert_key"] = convert_key(struct_name)
         depth = depth - 1
         curObj["_depth"] = depth
         curObj["_node_type"] = node_type
@@ -71,13 +77,15 @@ for tmpline in fileinput.input():
 
             m = re.search(r'.*\(\s*\*\s*([0-9a-zA-Z_\-]+)\).*', tmpline)
             fieldobj["val"] =  tmpline
+            assert m is not None
             fieldobj["key"] =  m.group(1) 
+            fieldobj["convert_key"] = convert_key(fieldobj["key"])
             fieldobj["_depth"] =  depth
             fieldobj["_cur_node_type"] =  "func"
         else:
-            if "[" in tmpline:
-                tmpline = re.sub(r'\[', '_', tmpline)
-                tmpline = re.sub(r'\]', '_', tmpline)
+            # if "[" in tmpline:
+            #     tmpline = re.sub(r'\[', '_', tmpline)
+            #     tmpline = re.sub(r'\]', '_', tmpline)
             tmpline = re.sub(r'struct', '', tmpline)
             tmpline = tmpline.strip()
             if "," in tmpline:
@@ -89,6 +97,7 @@ for tmpline in fileinput.input():
                     fieldobj = {}
                     fieldobj["val"] =  "_".join(fieldList[0:-1])
                     fieldobj["key"] =  field.strip(" ")
+                    fieldobj["convert_key"] = convert_key(fieldobj["key"])
                     fieldobj["_depth"] =  depth
                     fieldobj["_cur_node_type"] =  "attr"
                     fieldobj["_node_type"] =  node_type
@@ -100,6 +109,7 @@ for tmpline in fileinput.input():
                 fieldobj["_cur_node_type"] =  "attr"
                 fieldobj["_node_type"] =  node_type
                 fieldobj["key"] =  fieldList[-1]
+                fieldobj["convert_key"] = convert_key(fieldobj["key"])
                 stack.append(fieldobj)
                 continue
 
@@ -108,6 +118,7 @@ for tmpline in fileinput.input():
                 name  = fieldList[-1].strip()
                 fieldobj["val"] =  "_".join(fieldList[0:-1])
                 fieldobj["key"] =  name
+                fieldobj["convert_key"] = convert_key(fieldobj["key"])
                 fieldobj["_depth"] =  depth
                 fieldobj["_cur_node_type"] =  "attr"
 
@@ -119,6 +130,8 @@ for tmpline in fileinput.input():
 nodeStack = []
 linkStr = ""
 
+print(strus)
+exit(0)
 
 sset = {"mock"}
 for s in strus:
