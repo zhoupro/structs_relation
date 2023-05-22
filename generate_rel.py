@@ -27,13 +27,14 @@ digraph {
 for tmpline in fileinput.input():
 
     if "struct" in tmpline and "{" in tmpline or  "union" in tmpline and "{" in tmpline:
+        depth = depth + 1
         if "union" in tmpline:
             node_type = "union"
-        depth = depth + 1
+            continue
 
         m = re.search(r'\s*struct\s*([0-9a-zA-Z_]*)\s*{\s*', tmpline)
+        assert m is not None
         nodeName = m.group(1)
-        print(nodeName)
 
     elif "}" in tmpline:
         m = re.search(r'}\s*([0-9a-zA-Z_\-\[\]\*]*)\s*\;\s*', tmpline)
