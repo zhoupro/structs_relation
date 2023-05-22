@@ -12,7 +12,6 @@ digraph {
     <tr><td>int</td><td port="table">table</td></tr>
     <tr><td>int</td><td port="safe">safe</td></tr>
     <tr><td>long</td><td port="index">index</td></tr>
-    <tr><td>dictIterator</td><td port="_d">*d</td></tr>
     <tr><td>dict</td><td port="_d">*d</td></tr>
     </table>>];
     dict [label=<
@@ -59,7 +58,7 @@ digraph {
     </table>>];
     dictIterator:_entry->dictEntry:head
     dictIterator:_nextEntry->dictEntry:head
-    dictIterator:_d->dictIterator:head
+    dictIterator:_d->dict:head
     dict:ht_2_->dictht:head
     dict:_type->dictType:head
     dictht:__table->dictEntry:head

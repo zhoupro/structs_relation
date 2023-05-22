@@ -166,13 +166,13 @@ while (len(nodeStack) > 0):
 
         if not isinstance(row["val"],list):
             linkFlag = False
-            for st in sset:
-                if len(st) > len(row["val"]) and row["val"] in st:
-                    linkFlag = True
-                    tmpLinkStr = "    {}:{}->{}:head\n".format(curNode["path"], replacedKey,st)
-                    linkStr = linkStr + tmpLinkStr
-                    dotText = dotText + """    <tr><td>{}</td><td port="{}">{}</td></tr>\n""".format(st,replacedKey, row["key"])
-                    break
+            # for st in sset:
+            #     if len(st) > len(row["val"]) and row["val"] in st:
+            #         linkFlag = True
+            #         tmpLinkStr = "    {}:{}->{}:head\n".format(curNode["path"], replacedKey,st)
+            #         linkStr = linkStr + tmpLinkStr
+            #         dotText = dotText + """    <tr><td>{}</td><td port="{}">{}</td></tr>\n""".format(st,replacedKey, row["key"])
+            #         break
 
             if row["val"] in sset and linkFlag == False:
                 tmpLinkStr = "    {}:{}->{}:head\n".format(curNode["path"], replacedKey,row["val"])
