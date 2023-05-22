@@ -1,0 +1,68 @@
+
+digraph {
+    graph [pad="0.5", nodesep="0.5", ranksep="2"];
+    node [shape=plain]
+    rankdir=LR;
+    dictIterator [label=<
+    <table border="0" cellborder="1" cellspacing="0">
+    <tr><td colspan="2" port="head"><i>dictIterator</i></td></tr>
+    <tr><td>long_long</td><td port="fingerprint">fingerprint</td></tr>
+    <tr><td>dictEntry</td><td port="_entry">*entry</td></tr>
+    <tr><td>dictEntry</td><td port="_nextEntry">*nextEntry</td></tr>
+    <tr><td>int</td><td port="table">table</td></tr>
+    <tr><td>int</td><td port="safe">safe</td></tr>
+    <tr><td>long</td><td port="index">index</td></tr>
+    <tr><td>dictIterator</td><td port="_d">*d</td></tr>
+    <tr><td>dict</td><td port="_d">*d</td></tr>
+    </table>>];
+    dict [label=<
+    <table border="0" cellborder="1" cellspacing="0">
+    <tr><td colspan="2" port="head"><i>dict</i></td></tr>
+    <tr><td>int</td><td port="iterators">iterators</td></tr>
+    <tr><td>long</td><td port="rehashidx">rehashidx</td></tr>
+    <tr><td>dictht</td><td port="ht_2_">ht[2]</td></tr>
+    <tr><td>void</td><td port="_privdata">*privdata</td></tr>
+    <tr><td>dictType</td><td port="_type">*type</td></tr>
+    </table>>];
+    dictht [label=<
+    <table border="0" cellborder="1" cellspacing="0">
+    <tr><td colspan="2" port="head"><i>dictht</i></td></tr>
+    <tr><td>unsigned_long</td><td port="used">used</td></tr>
+    <tr><td>unsigned_long</td><td port="sizemask">sizemask</td></tr>
+    <tr><td>unsigned_long</td><td port="size">size</td></tr>
+    <tr><td>dictEntry</td><td port="__table">**table</td></tr>
+    </table>>];
+    dictType [label=<
+    <table border="0" cellborder="1" cellspacing="0">
+    <tr><td colspan="2" port="head"><i>dictType</i></td></tr>
+    <tr><td colspan="2" port="valDestructor">void (*valDestructor)(void *privdata, void *obj)</td></tr>
+    <tr><td colspan="2" port="keyDestructor">void (*keyDestructor)(void *privdata, void *key)</td></tr>
+    <tr><td colspan="2" port="keyCompare">int (*keyCompare)(void *privdata, const void *key1, const void *key2)</td></tr>
+    <tr><td colspan="2" port="valDup">void *(*valDup)(void *privdata, const void *obj)</td></tr>
+    <tr><td colspan="2" port="keyDup">void *(*keyDup)(void *privdata, const void *key)</td></tr>
+    <tr><td colspan="2" port="hashFunction">unsigned int (*hashFunction)(const void *key)</td></tr>
+    </table>>];
+    dictEntry [label=<
+    <table border="0" cellborder="1" cellspacing="0">
+    <tr><td colspan="2" port="head"><i>dictEntry</i></td></tr>
+    <tr><td>dictEntry</td><td port="_next">*next</td></tr>
+    <tr><td>union</td><td port="v">v</td></tr>
+    <tr><td>void</td><td port="_key">*key</td></tr>
+    </table>>];
+    v [label=<
+    <table border="0" cellborder="1" cellspacing="0">
+    <tr><td colspan="2" port="head"><i>v</i></td></tr>
+    <tr><td>double</td><td port="d">d</td></tr>
+    <tr><td>int64_t</td><td port="s64">s64</td></tr>
+    <tr><td>uint64_t</td><td port="u64">u64</td></tr>
+    <tr><td>void</td><td port="_val">*val</td></tr>
+    </table>>];
+    dictIterator:_entry->dictEntry:head
+    dictIterator:_nextEntry->dictEntry:head
+    dictIterator:_d->dictIterator:head
+    dict:ht_2_->dictht:head
+    dict:_type->dictType:head
+    dictht:__table->dictEntry:head
+    dictEntry:_next->dictEntry:head
+    dictEntry:v->v:head
+}

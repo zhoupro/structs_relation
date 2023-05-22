@@ -130,12 +130,10 @@ for tmpline in fileinput.input():
 nodeStack = []
 linkStr = ""
 
-print(strus)
-exit(0)
 
 sset = {"mock"}
 for s in strus:
-    s["path"] = s["key"]
+    s["path"] = s["convert_key"]
     nodeStack.append(s)
     sset.add(s["key"])
 
@@ -145,27 +143,39 @@ while (len(nodeStack) > 0):
     key = curNode["key"]
     dotText =  dotText + """    {} [label=<
     <table border="0" cellborder="1" cellspacing="0">
-    <tr><td colspan="2" port="head"><i>{}</i></td></tr>\n""".format(key, key)
+    <tr><td colspan="2" port="head"><i>{}</i></td></tr>\n""".format(curNode["path"], key)
 
     vals = curNode["val"]
     for row in vals:
-        replacedKey = re.sub(r'\*',"__",row["key"]) 
+        replacedKey = row["convert_key"]
         if isinstance(row["val"],list):
             tmpNode = {}
             # tmpNode["path"] = curNode["path"] +"#" + row["key"]
-            tmpLinkStr = "    {}:{}->{}:head\n".format(key, replacedKey,row["key"])
-            linkStr = linkStr + tmpLinkStr
             tmpNode["key"] = row["key"]
+            tmpNode["convert_key"] = row["convert_key"]
             tmpNode["val"] = row["val"]
+            # tmpNode["path"] = "{}_{}".format(curNode["path"],row["convert_key"])
+            tmpNode["path"] = row["convert_key"]
             nodeStack.append(tmpNode)
-            sset.add(row["key"])
+            tmpLinkStr = "    {}:{}->{}:head\n".format(curNode["path"], tmpNode["path"],row["key"])
+            linkStr = linkStr + tmpLinkStr
+            sset.add(tmpNode["path"])
         nodeType = row["val"]
         if isinstance(row["val"],list):
             nodeType = row["_node_type"]
 
         if not isinstance(row["val"],list):
-            if row["val"] in sset:
-                tmpLinkStr = "    {}:{}->{}:head\n".format(key, replacedKey,row["val"])
+            linkFlag = False
+            for st in sset:
+                if len(st) > len(row["val"]) and row["val"] in st:
+                    linkFlag = True
+                    tmpLinkStr = "    {}:{}->{}:head\n".format(curNode["path"], replacedKey,st)
+                    linkStr = linkStr + tmpLinkStr
+                    dotText = dotText + """    <tr><td>{}</td><td port="{}">{}</td></tr>\n""".format(st,replacedKey, row["key"])
+                    break
+
+            if row["val"] in sset and linkFlag == False:
+                tmpLinkStr = "    {}:{}->{}:head\n".format(curNode["path"], replacedKey,row["val"])
                 linkStr = linkStr + tmpLinkStr
 
         if row["_cur_node_type"] == "func":
